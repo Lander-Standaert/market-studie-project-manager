@@ -35,6 +35,7 @@ wordcloud2(data=df, size=1.6, color='random-dark')
 
 
 # Find associations for words that occur at least 50 times
-#findAssocs(dtm, terms = findFreqTerms(dtm, lowfreq = 60), corlimit = 0.6)
+head(findAssocs(dtm, terms = findFreqTerms(dtm, lowfreq = 50), corlimit = 0.5), 5)
 
 filter(df, df$word == "action")
+filter(df, df$word == "leader")

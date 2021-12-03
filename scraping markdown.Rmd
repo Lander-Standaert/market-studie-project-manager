@@ -78,14 +78,14 @@ for(i in seq_along(page_results)) {
 
 First, we visualize the most occuring words
 
-```{r, eval=TRUE}
+```{r, eval=TRUE,warning=FALSE}
 
 #load library
-library(wordcloud)
-library(RColorBrewer)
-library(wordcloud2)
-library(tm)
-library(dplyr)
+library(wordcloud, warn = FALSE)
+library(RColorBrewer, warn = FALSE)
+library(wordcloud2, warn = FALSE)
+library(tm, warn = FALSE)
+library(dplyr, warn = FALSE)
 
 #read csv constructed during web scraping
 df = read.csv(file = './full_df.csv')
@@ -116,12 +116,20 @@ df <- data.frame(word = names(words),freq=words)
 
 wordcloud2(data=df, size=1.6, color='random-dark')
 
-
-# Find associations for words that occur at least 50 times
-findAssocs(dtm, terms = findFreqTerms(dtm, lowfreq = 50), corlimit = 0.5)
-
-#filter function used top 5 Skills
-filter(df, df$word == "action")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## This code can be use to find frequent occuring terms and their correlated words
+```{r}
+#Find associations for words that occur at least 50 times, with a correlation of at least 50%
+
+head(findAssocs(dtm, terms = findFreqTerms(dtm, lowfreq = 50), corlimit = 0.5), 5)
+
+```
+
+## This code was used to test hypothesis given in literature
+```{r}
+#filter function used top 5 Skills
+filter(df, df$word == "action")
+filter(df, df$word == "leader")
+
+```
