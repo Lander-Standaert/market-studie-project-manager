@@ -3,8 +3,8 @@ title: "Job scraping PM"
 author: "Lander Standaert"
 date: "3-12-2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -88,6 +88,8 @@ library(RColorBrewer, warn = FALSE)
 library(wordcloud2, warn = FALSE)
 library(tm, warn = FALSE)
 library(dplyr, warn = FALSE)
+library(webshot)
+library(htmlwidgets)
 
 #read csv constructed during web scraping
 df = read.csv(file = './full_df.csv')
@@ -116,8 +118,9 @@ matrix <- as.matrix(dtm)
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 
-wordcloud2(data=df, size=1.6, color='random-dark')
-
+my_graph <- wordcloud2(data=df, size=1.6, color='random-dark')
+saveWidget(my_graph, "tmp.html", selfcontained = F)
+webshot("tmp.html", "wc1.png", delay = 5, vwidth = 500, vheight = 500)
 ```
 
 ## This code can be use to find frequent occuring terms and their correlated words

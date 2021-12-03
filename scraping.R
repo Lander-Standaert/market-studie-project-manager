@@ -2,7 +2,7 @@ library(tidyverse)
 library(rvest)
 library(dplyr)
 library(xml2)
-tinytex::install_tinytex()
+webshot::install_phantomjs()
 
 page_result_start <- 10 # starting page 
 page_result_end <- 100 # last page results
