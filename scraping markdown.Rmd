@@ -1,0 +1,127 @@
+---
+title: "Job scraping PM"
+author: "Lander Standaert"
+date: "3-12-2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Intro 
+This code is build for the course Project Management(2021-2022).
+We scrape the job site "indeed.com" to obtain data insights in the required skills for project managers in Belgium.
+
+
+```{r, eval = FALSE}
+
+#load libraries
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(xml2)
+
+#define start and end page. In total we will have 150 unique entries
+page_result_start <- 10 # starting page 
+page_result_end <- 100 # last page results
+page_results <- seq(from = page_result_start, to = page_result_end, by = 10)
+
+full_df <- data.frame()
+
+for(i in seq_along(page_results)) {
+  
+  first_page_url <- "https://be.indeed.com/jobs?q=%22project+Manager%22&l=Belgi%C3%AB&lang=en"
+  url <- paste0(first_page_url, "&start=", page_results[i])
+  page <- xml2::read_html(url)
+  
+  # Sys.sleep pauses R for two seconds before it resumes
+  # Putting it there avoids error messages such as "Error in open.connection(con, "rb") : Timeout was reached"
+  Sys.sleep(2)
+ 
+  job_title = page %>% 
+    html_nodes(".jobTitle") %>% 
+    html_text()
+    
+  company_name = page %>% 
+    html_nodes(".companyName") %>% 
+    html_text()
+  
+  location = page %>% 
+    html_nodes(".companyLocation") %>% 
+    html_text()
+  
+  links <- page %>% 
+    html_nodes(".tapItem") %>% 
+    html_attr("href")
+  
+  links
+  job_description <- c()
+  
+  for(i in seq_along(links)) {
+    
+    url <- paste0("https://be.indeed.com", links[i])
+    page <- xml2::read_html(url)
+    
+    job_description[i] = page %>% 
+      html_nodes(".jobsearch-JobComponent-description") %>% 
+      html_text() %>% 
+      stringi::stri_trim_both()
+  }
+  df = data.frame(location, company_name, job_title, job_description)
+  full_df <- rbind(full_df, df)
+}
+
+```
+
+## Word Cloud Analysis
+
+First, we visualize the most occuring words
+
+```{r, eval=TRUE}
+
+#load library
+library(wordcloud)
+library(RColorBrewer)
+library(wordcloud2)
+library(tm)
+library(dplyr)
+
+#read csv constructed during web scraping
+df = read.csv(file = './full_df.csv')
+
+#Create a vector containing only the text
+text <- df$job_description
+
+# Create a corpus  
+docs <- Corpus(VectorSource(text))
+
+#cleaning
+docs <- docs %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace)
+docs <- tm_map(docs, content_transformer(tolower))
+docs <- tm_map(docs, removeWords, stopwords("english"))
+docs <- tm_map(docs, removeWords, c("will", "work","can","know","well","make","job","good","things","first","keep","youre","ugentec")) 
+
+#basic word stem
+docs <- tm_map(docs, stemDocument)
+
+#document term
+dtm <- TermDocumentMatrix(docs) 
+matrix <- as.matrix(dtm) 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+
+wordcloud2(data=df, size=1.6, color='random-dark')
+
+
+# Find associations for words that occur at least 50 times
+findAssocs(dtm, terms = findFreqTerms(dtm, lowfreq = 50), corlimit = 0.5)
+
+#filter function used top 5 Skills
+filter(df, df$word == "action")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
